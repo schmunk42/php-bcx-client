@@ -1,14 +1,14 @@
-# Setting Up a Basecamp Classic API Client
+# Setting Up a Basecamp 2 API Client
 
-Complete step-by-step guide to set up OAuth 2.0 authentication for the Basecamp Classic (BCX) API.
+Complete step-by-step guide to set up OAuth 2.0 authentication for the Basecamp 2 (BCX) API.
 
 ## Overview
 
-This guide walks you through setting up a Basecamp Classic API client from registration to making your first API call. The process takes approximately 10-15 minutes.
+This guide walks you through setting up a Basecamp 2 API client from registration to making your first API call. The process takes approximately 10-15 minutes.
 
 ### What You'll Need
 
-- A Basecamp Classic account
+- A Basecamp 2 account
 - Basic command line knowledge
 - Docker installed (recommended) OR PHP 8.4+ installed locally
 
@@ -176,7 +176,7 @@ User Information:
   Name: John Doe
   Email: john@example.com
 
-Basecamp Classic Accounts:
+Basecamp 2 Accounts:
   - ACME Corp (ID: 1757700)
     URL: https://basecamp.com/1757700/api/v1
 ```
@@ -510,7 +510,7 @@ Before deploying to production:
 - [Basecamp OAuth Documentation](https://github.com/basecamp/api/blob/master/sections/authentication.md)
 - [OAuth 2.0 RFC 6749](https://tools.ietf.org/html/rfc6749)
 - [OAuth 2.0 Security Best Practices](https://tools.ietf.org/html/draft-ietf-oauth-security-topics)
-- [Basecamp Classic API Reference](https://github.com/basecamp/bcx-api)
+- [Basecamp 2 API Reference](https://github.com/basecamp/bcx-api)
 
 ---
 

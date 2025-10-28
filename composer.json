@@ -1,6 +1,6 @@
 {
     "name": "schmunk42/php-bcx-client",
-    "description": "Modern PHP client for Basecamp Classic (BCX) API",
+    "description": "Modern PHP client for Basecamp 2 (BCX) API",
     "type": "library",
     "license": "MIT",
     "keywords": ["basecamp", "bcx", "api", "client", "oauth"],

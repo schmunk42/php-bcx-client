@@ -26,7 +26,7 @@ use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
- * Main client for interacting with Basecamp Classic API
+ * Main client for interacting with Basecamp 2 (BCX) API
  */
 final class BasecampClient
 {

@@ -2,9 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# Basecamp Classic API Client (php-bcx-client)
+# Basecamp 2 API Client (php-bcx-client)
 
-A modern PHP 8.4 client for the Basecamp Classic (BCX) API with OAuth 2.0 authentication, built using Symfony HttpClient and compatible with API Platform.
+A modern PHP 8.4 client for the Basecamp 2 API (BCX) with OAuth 2.0 authentication, built using Symfony HttpClient and compatible with API Platform.
 
 ## Project Commands
 
@@ -122,7 +122,7 @@ src/
 
 ## API Documentation Reference
 
-Official Basecamp Classic API: https://github.com/basecamp/bcx-api
+Official Basecamp 2 (BCX) API: https://github.com/basecamp/bcx-api
 
 ### Implemented Resources
 

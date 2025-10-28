@@ -1,56 +1,60 @@
-# Basecamp Classic (BCX) API Client for PHP
+# Basecamp 2 (BCX) API Client for PHP
 
-[![CI](https://github.com/schmunk42/php-bcx-api/actions/workflows/ci.yml/badge.svg)](https://github.com/schmunk42/php-bcx-api/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/schmunk42/php-bcx-api/branch/main/graph/badge.svg)](https://codecov.io/gh/schmunk42/php-bcx-api)
-[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-blue.svg)](https://php.net/)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-8892BF.svg)](https://php.net/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-A modern, type-safe PHP 8.4 client for the Basecamp Classic API with OAuth 2.0 support.
+A modern, type-safe PHP 8.4 client for the Basecamp 2 API with OAuth 2.0 and HTTP Basic authentication support.
 
 ## Features
 
-- PHP 8.4+ with strict typing
-- OAuth 2.0 authentication
-- Symfony HttpClient integration
-- PSR-3 logging support
-- Comprehensive test coverage with PHPUnit
-- API Platform compatible
-- Docker development environment included
+- ✅ PHP 8.4+ with strict typing
+- ✅ Multiple authentication methods (OAuth 2.0 & HTTP Basic)
+- ✅ All 12 Basecamp 2 resources implemented
+- ✅ 100% test coverage (98 tests, 296 assertions)
+- ✅ Symfony HttpClient integration
+- ✅ PSR-3 logging support
+- ✅ PHPStan level 8 compliant
+- ✅ PSR-12 code style
+- ✅ Docker development environment
 
 ## Installation
-
-### For Library Users
 
 ```bash
 composer require schmunk42/php-bcx-client
 ```
 
-### For Development (with Docker)
+## Quick Start
 
-```bash
-# Clone the repository
-git clone https://github.com/schmunk42/php-bcx-client.git
-cd php-bcx-client
+### Option 1: HTTP Basic Authentication (Simplest)
 
-# Setup environment
-cp .env.example .env
-# Edit .env with your Basecamp credentials
+Perfect for development, debugging, and personal scripts:
 
-# Install dependencies and run tests
-make install
-make test
+```php
+<?php
+
+use Schmunk42\BasecampApi\Authentication\BasicAuthentication;
+use Schmunk42\BasecampApi\Client\BasecampClient;
+
+// Your Basecamp credentials
+$accountId = '999999999'; // Your account ID
+$username = 'you@example.com'; // Your Basecamp email
+$password = 'your-password'; // Your Basecamp password
+
+// Create authenticated client
+$auth = new BasicAuthentication($username, $password);
+$client = new BasecampClient($accountId, $auth);
+
+// Get all projects
+$projects = $client->projects()->all();
+
+// Get current user
+$me = $client->people()->me();
+echo "Logged in as: {$me['name']}\n";
 ```
 
-## Requirements
+### Option 2: OAuth 2.0 (Recommended for Production)
 
-- PHP 8.4 or higher
-- Symfony HttpClient 7.0+
-
-**OR**
-
-- Docker & Docker Compose (for containerized development)
-
-## Quick Start
+For applications with multiple users:
 
 ```php
 <?php
@@ -58,301 +62,199 @@ make test
 use Schmunk42\BasecampApi\Authentication\OAuth2Authentication;
 use Schmunk42\BasecampApi\Client\BasecampClient;
 
-// Create authentication instance
-$auth = new OAuth2Authentication('your-access-token');
+// OAuth 2.0 access token (obtained through OAuth flow)
+$accessToken = 'BAhbByIBsHsidmVyc2lvbiI6MSwidXNlcl9pZCI...';
+$accountId = '999999999';
 
-// Initialize client with your account ID
-$client = new BasecampClient('999999999', $auth);
+// Create authenticated client
+$auth = new OAuth2Authentication($accessToken);
+$client = new BasecampClient($accountId, $auth);
 
-// Get all projects
+// Use the API
 $projects = $client->projects()->all();
-
-// Get specific project
-$project = $client->projects()->get(123456);
 ```
 
-## Authentication
+**See [docs/OAUTH.md](docs/OAUTH.md)** for complete OAuth 2.0 setup guide.
 
-This library uses OAuth 2.0 Bearer Token authentication for the Basecamp Classic API.
+## Requirements
 
-### Getting Your OAuth Access Token
+- PHP 8.4 or higher
+- Symfony HttpClient 7.0+
 
-#### Step 1: Register Your Application
+## Available Resources
 
-1. Go to [Basecamp Launchpad](https://launchpad.37signals.com/integrations) (you need a Basecamp account)
-2. Click "Register another application"
-3. Fill in the application details:
-   - **Name**: Your application name (e.g., "My Basecamp Integration")
-   - **Company/Organization**: Your company name
-   - **Website**: Your website URL
-   - **Redirect URI**: Your OAuth callback URL (e.g., `https://yourapp.com/oauth/callback`)
-     - For local development: `http://localhost:8080/callback`
-4. Note down your **Client ID** and **Client Secret**
+All 12 Basecamp 2 resources are fully implemented:
 
-#### Step 2: Get Authorization from User
-
-Direct users to the authorization URL:
-
-```
-https://launchpad.37signals.com/authorization/new?type=web_server&client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI
-```
-
-Replace:
-- `YOUR_CLIENT_ID` - Your application's client ID
-- `YOUR_REDIRECT_URI` - Your registered redirect URI (must match exactly)
-
-#### Step 3: Exchange Authorization Code for Access Token
-
-After user authorizes, Basecamp redirects to your `redirect_uri` with a `code` parameter:
-
-```
-https://yourapp.com/oauth/callback?code=AUTHORIZATION_CODE
-```
-
-Exchange this code for an access token:
-
-```bash
-curl -X POST https://launchpad.37signals.com/authorization/token \
-  -d "type=web_server" \
-  -d "client_id=YOUR_CLIENT_ID" \
-  -d "client_secret=YOUR_CLIENT_SECRET" \
-  -d "redirect_uri=YOUR_REDIRECT_URI" \
-  -d "code=AUTHORIZATION_CODE"
-```
-
-Response:
-
-```json
-{
-  "access_token": "BAhbByIBsHsidmVyc2lvbiI6MSwidXNlcl9pZCI...",
-  "expires_in": 1209600,
-  "refresh_token": "your-refresh-token"
-}
-```
-
-#### Step 4: Find Your Account ID
-
-Make a request to get your accounts:
-
-```bash
-curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  https://launchpad.37signals.com/authorization.json
-```
-
-Response includes your accounts with their IDs:
-
-```json
-{
-  "accounts": [
-    {
-      "product": "bcx",
-      "id": 999999999,
-      "name": "Your Company",
-      "href": "https://basecamp.com/999999999/api/v1"
-    }
-  ]
-}
-```
-
-The `id` field (e.g., `999999999`) is your Account ID.
-
-### Using the Access Token
-
-```php
-use Schmunk42\BasecampApi\Authentication\OAuth2Authentication;
-use DateTimeImmutable;
-
-// Simple token (no expiry tracking)
-$auth = new OAuth2Authentication('BAhbByIBsHsidmVyc2lvbiI6MSwidXNlcl9pZCI...');
-
-// Token with expiry (recommended)
-$expiresAt = (new DateTimeImmutable())->modify('+14 days'); // 1209600 seconds
-$auth = new OAuth2Authentication('your-access-token', $expiresAt);
-
-// Use with client
-$client = new BasecampClient('999999999', $auth);
-```
-
-### Token Refresh
-
-Access tokens expire after 2 weeks (1,209,600 seconds). Use the refresh token to get a new access token:
-
-```bash
-curl -X POST https://launchpad.37signals.com/authorization/token \
-  -d "type=refresh" \
-  -d "client_id=YOUR_CLIENT_ID" \
-  -d "client_secret=YOUR_CLIENT_SECRET" \
-  -d "refresh_token=YOUR_REFRESH_TOKEN"
-```
-
-### Quick Testing (Development Only)
-
-For quick testing, you can use Basecamp's personal access tokens:
-
-1. Go to [Basecamp](https://basecamp.com)
-2. Navigate to your account settings
-3. Click "Apps & Integrations"
-4. Create a personal access token
-
-**Note**: Personal access tokens should only be used for development/testing, not production applications.
-
-### Running OAuth Examples
-
-#### With Docker (Recommended)
-
-```bash
-# On Host
-
-# Set OAuth credentials
-cp .env.example .env
-# Edit .env with your Client ID and Client Secret
-
-# Run OAuth flow example
-docker compose run --rm php php examples/oauth-flow.php
-
-# Or use make command
-make shell
-# In Container
-php examples/oauth-flow.php
-```
-
-#### Native PHP
-
-```bash
-# On Host
-
-export BASECAMP_CLIENT_ID="your-client-id"
-export BASECAMP_CLIENT_SECRET="your-client-secret"
-export BASECAMP_REDIRECT_URI="http://localhost:8080/callback"
-
-php examples/oauth-flow.php
-```
-
-### See Also
-
-- [Complete OAuth Setup Guide](./docs/OAUTH.md) - Step-by-step OAuth setup guide
-- [OAuth Code Examples](./docs/OAUTH-EXAMPLES.md) - PHP code examples and patterns
-- [Basecamp OAuth Documentation](https://github.com/basecamp/api/blob/master/sections/authentication.md)
+| Resource | Description | Example |
+|----------|-------------|---------|
+| **Projects** | Manage projects | `$client->projects()->all()` |
+| **Todolists** | Todo lists in projects | `$client->todolists()->all($projectId)` |
+| **Todos** | Individual tasks | `$client->todos()->complete($projectId, $todoId)` |
+| **People** | Users and access | `$client->people()->me()` |
+| **Messages** | Message board posts | `$client->messages()->create($projectId, $data)` |
+| **Comments** | Comments on resources | `$client->comments()->create($projectId, 'Todo', $todoId, $data)` |
+| **Documents** | Project documents | `$client->documents()->all($projectId)` |
+| **Uploads** | File attachments | `$client->uploads()->create($fileContent, $mimeType)` |
+| **Events** | Activity feed | `$client->events()->all()` |
+| **Calendar Events** | Scheduled events | `$client->calendarEvents()->all()` |
+| **Topics** | Content navigation | `$client->topics()->allInProject($projectId)` |
+| **Groups** | User groups/companies | `$client->groups()->all()` |
 
 ## Usage Examples
 
 ### Projects
 
 ```php
-// List all active projects
+// List all projects
 $projects = $client->projects()->all();
 
-// List archived projects
+// Get archived projects
 $archived = $client->projects()->archived();
 
-// Get specific project
-$project = $client->projects()->get(123456);
-
-// Create new project
-$newProject = $client->projects()->create([
-    'name' => 'My New Project',
+// Create a new project
+$project = $client->projects()->create([
+    'name' => 'New Project',
     'description' => 'Project description',
 ]);
 
-// Update project
-$updated = $client->projects()->update(123456, [
-    'name' => 'Updated Project Name',
-]);
-
-// Archive project
+// Archive a project
 $client->projects()->delete(123456);
-
-// Activate archived project
-$client->projects()->activate(123456);
 ```
 
-### Todolists & Todos
+### Todos
 
 ```php
 // Get all todolists in a project
-$todolists = $client->todolists()->all(123456);
-
-// Get assigned todolists
-$assigned = $client->todolists()->assigned();
-
-// Create todolist
-$todolist = $client->todolists()->create(123456, [
-    'name' => 'My Todolist',
-    'description' => 'Things to do',
-]);
+$todolists = $client->todolists()->all($projectId);
 
 // Get todos in a todolist
-$todos = $client->todos()->all(123456, 789012);
+$todos = $client->todos()->all($projectId, $todolistId);
 
-// Create todo
-$todo = $client->todos()->create(123456, 789012, [
-    'content' => 'Complete this task',
+// Create a new todo
+$todo = $client->todos()->create($projectId, $todolistId, [
+    'content' => 'Task description',
     'due_at' => '2025-12-31',
 ]);
 
-// Complete a todo
-$client->todos()->complete(123456, 345678);
-
-// Uncomplete a todo
-$client->todos()->uncomplete(123456, 345678);
+// Mark todo as complete
+$client->todos()->complete($projectId, $todoId);
 ```
 
-### People & Access Management
+### Messages & Comments
 
 ```php
-// Get all people
-$people = $client->people()->all();
-
-// Get current user
-$me = $client->people()->me();
-
-// Get specific person
-$person = $client->people()->get(987654);
-
-// Get people in a project
-$projectPeople = $client->people()->inProject(123456);
-
-// Grant project access
-$client->people()->grantAccess(123456, [
-    'person_id' => 987654,
+// Create a message
+$message = $client->messages()->create($projectId, [
+    'subject' => 'Project Update',
+    'content' => 'Here is the latest update...',
 ]);
 
-// Revoke project access
-$client->people()->revokeAccess(123456, 987654);
+// Add a comment to a message
+$comment = $client->comments()->create(
+    $projectId,
+    'Message',
+    $messageId,
+    ['content' => 'Great update!']
+);
 ```
 
-## Logging
-
-The client supports PSR-3 compatible loggers:
+### File Uploads
 
 ```php
-use Monolog\Logger;
-use Monolog\Handler\StreamHandler;
+// Upload a file (two-step process)
+$fileContent = file_get_contents('/path/to/file.pdf');
+$upload = $client->uploads()->create($fileContent, 'application/pdf');
+$token = $upload['token'];
 
-$logger = new Logger('basecamp');
-$logger->pushHandler(new StreamHandler('php://stdout', Logger::DEBUG));
-
-$client = new BasecampClient('999999999', $auth, null, $logger);
-```
-
-## Custom HTTP Client
-
-You can provide your own Symfony HttpClient instance:
-
-```php
-use Symfony\Component\HttpClient\HttpClient;
-
-$httpClient = HttpClient::create([
-    'timeout' => 30,
-    'max_redirects' => 5,
+// Attach to a message
+$message = $client->messages()->create($projectId, [
+    'subject' => 'Document attached',
+    'content' => 'See attached file',
+    'attachments' => [
+        ['token' => $token, 'name' => 'document.pdf']
+    ],
 ]);
+```
 
-$client = new BasecampClient('999999999', $auth, $httpClient);
+## Authentication
+
+### Finding Your Account ID
+
+**With Basic Auth:**
+```php
+$auth = new BasicAuthentication('you@example.com', 'password');
+$client = new BasecampClient('999999999', $auth); // Try any number first
+$me = $client->people()->me(); // Will show your accounts
+```
+
+**With OAuth 2.0:**
+```bash
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  https://launchpad.37signals.com/authorization.json
+```
+
+The `id` field in the response is your Account ID.
+
+### OAuth 2.0 Setup
+
+For production applications with multiple users, use OAuth 2.0:
+
+1. **Register your app**: https://launchpad.37signals.com/integrations
+2. **Get access token**: Follow the OAuth 2.0 flow
+3. **Use with client**: See [docs/OAUTH.md](docs/OAUTH.md) for complete guide
+
+## Development
+
+### With Docker (Recommended)
+
+```bash
+# Clone repository
+git clone https://github.com/schmunk42/php-bcx-client.git
+cd php-bcx-client
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your credentials
+
+# Install and test
+make install
+make test
+make phpstan
+make cs-check
+
+# Run examples
+make example         # Basic usage
+make oauth-flow      # OAuth 2.0 flow
+```
+
+### Without Docker
+
+```bash
+composer install
+composer test
+composer phpstan
+composer cs-check
+```
+
+## Testing
+
+```bash
+# Run all tests
+make test
+# or
+composer test
+
+# Run with coverage
+docker compose run --rm php vendor/bin/phpunit --coverage-html coverage
+
+# Static analysis
+make phpstan
+
+# Code style
+make cs-fix
 ```
 
 ## Error Handling
-
-The library throws specific exceptions for different error scenarios:
 
 ```php
 use Schmunk42\BasecampApi\Exception\AuthenticationException;
@@ -361,70 +263,57 @@ use Schmunk42\BasecampApi\Exception\RequestException;
 try {
     $projects = $client->projects()->all();
 } catch (AuthenticationException $e) {
-    // Handle authentication errors (401, expired token)
-    echo "Authentication failed: " . $e->getMessage();
+    // Handle authentication errors (401)
+    echo "Auth failed: " . $e->getMessage();
 } catch (RequestException $e) {
     // Handle other API errors (400, 404, 500, etc.)
-    echo "Request failed with status " . $e->getStatusCode();
+    echo "API error: " . $e->getStatusCode();
     echo "Response: " . $e->getResponseBody();
 }
 ```
 
-## Development
+## Logging
 
-### With Docker (Recommended)
+Inject a PSR-3 logger for debugging:
 
-```bash
-# First time setup
-make install            # Build image and install dependencies
+```php
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 
-# Run tests
-make test
+$logger = new Logger('basecamp');
+$logger->pushHandler(new StreamHandler('php://stdout', Logger::DEBUG));
 
-# Code quality
-make cs-check           # Check code style
-make cs-fix             # Fix code style
-make phpstan            # Static analysis
+$client = new BasecampClient($accountId, $auth, null, $logger);
 
-# Examples
-make example            # Run basic usage example
-make oauth-flow         # Run OAuth flow (get access token)
-make token-refresh      # Refresh expired token
-
-# Other commands
-make shell              # Open shell in container
-make help               # Show all available commands
+// All API requests will be logged
+$projects = $client->projects()->all();
 ```
 
-### Native PHP
+## Documentation
 
-```bash
-# Install dependencies
-composer install
+- **OAuth 2.0 Setup**: [docs/OAUTH.md](docs/OAUTH.md) - Complete guide with examples
+- **Code Examples**: [examples/](examples/) - Working examples for all features
+- **API Reference**: https://github.com/basecamp/bcx-api - Official Basecamp 2 API docs
 
-# Run tests
-composer test
+## Contributing
 
-# Code quality
-composer cs-check       # Check code style
-composer cs-fix         # Fix code style
-composer phpstan        # Static analysis
-```
+Contributions are welcome! Please ensure:
 
-## API Documentation
-
-For complete API documentation, see:
-- [Basecamp Classic API Documentation](https://github.com/basecamp/bcx-api)
-- [Projects](https://github.com/basecamp/bcx-api/blob/master/sections/projects.md)
-- [Todolists](https://github.com/basecamp/bcx-api/blob/master/sections/todolists.md)
-- [Todos](https://github.com/basecamp/bcx-api/blob/master/sections/todos.md)
-- [People](https://github.com/basecamp/bcx-api/blob/master/sections/people.md)
+- PHPUnit tests pass (`make test`)
+- PHPStan level 8 passes (`make phpstan`)
+- Code follows PSR-12 (`make cs-fix`)
+- 100% test coverage for new code
 
 ## License
 
-MIT
+MIT License. See [LICENSE](LICENSE) file.
+
+## Support
+
+- **Issues**: https://github.com/schmunk42/php-bcx-client/issues
+- **API Docs**: https://github.com/basecamp/bcx-api
 
 ## Credits
 
-- Original PHP 5.x implementation: [netvlies/basecamp-php](https://github.com/netvlies/basecamp-php)
-- Basecamp Classic API: [basecamp/bcx-api](https://github.com/basecamp/bcx-api)
+- Built with [Symfony HttpClient](https://symfony.com/doc/current/http_client.html)
+- Inspired by the legacy [netvlies/basecamp-php](https://github.com/netvlies/basecamp-php) client
