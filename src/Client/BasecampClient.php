@@ -9,6 +9,8 @@ use Psr\Log\NullLogger;
 use Schmunk42\BasecampApi\Authentication\AuthenticationInterface;
 use Schmunk42\BasecampApi\Exception\AuthenticationException;
 use Schmunk42\BasecampApi\Exception\RequestException;
+use Schmunk42\BasecampApi\Resource\CommentsResource;
+use Schmunk42\BasecampApi\Resource\MessagesResource;
 use Schmunk42\BasecampApi\Resource\PeopleResource;
 use Schmunk42\BasecampApi\Resource\ProjectsResource;
 use Schmunk42\BasecampApi\Resource\TodolistsResource;
@@ -34,6 +36,8 @@ final class BasecampClient
     private ?TodolistsResource $todolists = null;
     private ?TodosResource $todos = null;
     private ?PeopleResource $people = null;
+    private ?MessagesResource $messages = null;
+    private ?CommentsResource $comments = null;
 
     public function __construct(
         private readonly string $accountId,
@@ -75,6 +79,22 @@ final class BasecampClient
     public function people(): PeopleResource
     {
         return $this->people ??= new PeopleResource($this);
+    }
+
+    /**
+     * Get Messages resource client
+     */
+    public function messages(): MessagesResource
+    {
+        return $this->messages ??= new MessagesResource($this);
+    }
+
+    /**
+     * Get Comments resource client
+     */
+    public function comments(): CommentsResource
+    {
+        return $this->comments ??= new CommentsResource($this);
     }
 
     /**

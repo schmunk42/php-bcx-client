@@ -9,6 +9,8 @@ use Schmunk42\BasecampApi\Authentication\OAuth2Authentication;
 use Schmunk42\BasecampApi\Client\BasecampClient;
 use Schmunk42\BasecampApi\Exception\AuthenticationException;
 use Schmunk42\BasecampApi\Exception\RequestException;
+use Schmunk42\BasecampApi\Resource\CommentsResource;
+use Schmunk42\BasecampApi\Resource\MessagesResource;
 use Schmunk42\BasecampApi\Resource\PeopleResource;
 use Schmunk42\BasecampApi\Resource\ProjectsResource;
 use Schmunk42\BasecampApi\Resource\TodolistsResource;
@@ -53,6 +55,16 @@ final class BasecampClientTest extends TestCase
     public function testPeopleReturnsPeopleResource(): void
     {
         $this->assertInstanceOf(PeopleResource::class, $this->client->people());
+    }
+
+    public function testMessagesReturnsMessagesResource(): void
+    {
+        $this->assertInstanceOf(MessagesResource::class, $this->client->messages());
+    }
+
+    public function testCommentsReturnsCommentsResource(): void
+    {
+        $this->assertInstanceOf(CommentsResource::class, $this->client->comments());
     }
 
     public function testGetRequest(): void
