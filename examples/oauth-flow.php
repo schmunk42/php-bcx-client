@@ -197,7 +197,7 @@ function exchangeCodeForToken(
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Content-Type: application/x-www-form-urlencoded',
-        'User-Agent: php-bcx-api Example (github.com/schmunk42/php-bcx-api)',
+        'User-Agent: php-bcx-client Example (github.com/schmunk42/php-bcx-client)',
     ]);
 
     $response = curl_exec($ch);
@@ -230,7 +230,7 @@ function getAccountInformation(string $accessToken): array
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . $accessToken,
-        'User-Agent: php-bcx-api Example (github.com/schmunk42/php-bcx-api)',
+        'User-Agent: php-bcx-client Example (github.com/schmunk42/php-bcx-client)',
     ]);
 
     $response = curl_exec($ch);

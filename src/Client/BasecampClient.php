@@ -24,7 +24,7 @@ final class BasecampClient
 {
     private const BASE_URL = 'https://basecamp.com';
     private const API_VERSION = '/api/v1';
-    private const USER_AGENT = 'php-bcx-api (https://github.com/schmunk42/php-bcx-api)';
+    private const USER_AGENT = 'php-bcx-client (https://github.com/schmunk42/php-bcx-client)';
 
     private HttpClientInterface $httpClient;
     private LoggerInterface $logger;

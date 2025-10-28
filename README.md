@@ -17,15 +17,15 @@ A modern, type-safe PHP 8.4 client for the Basecamp Classic API with OAuth 2.0 s
 ### For Library Users
 
 ```bash
-composer require schmunk42/php-bcx-api
+composer require schmunk42/php-bcx-client
 ```
 
 ### For Development (with Docker)
 
 ```bash
 # Clone the repository
-git clone https://github.com/schmunk42/php-bcx-api.git
-cd php-bcx-api
+git clone https://github.com/schmunk42/php-bcx-client.git
+cd php-bcx-client
 
 # Setup environment
 cp .env.example .env
