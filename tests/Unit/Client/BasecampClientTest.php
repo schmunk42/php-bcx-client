@@ -10,11 +10,13 @@ use Schmunk42\BasecampApi\Client\BasecampClient;
 use Schmunk42\BasecampApi\Exception\AuthenticationException;
 use Schmunk42\BasecampApi\Exception\RequestException;
 use Schmunk42\BasecampApi\Resource\CommentsResource;
+use Schmunk42\BasecampApi\Resource\DocumentsResource;
 use Schmunk42\BasecampApi\Resource\MessagesResource;
 use Schmunk42\BasecampApi\Resource\PeopleResource;
 use Schmunk42\BasecampApi\Resource\ProjectsResource;
 use Schmunk42\BasecampApi\Resource\TodolistsResource;
 use Schmunk42\BasecampApi\Resource\TodosResource;
+use Schmunk42\BasecampApi\Resource\UploadsResource;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
@@ -65,6 +67,16 @@ final class BasecampClientTest extends TestCase
     public function testCommentsReturnsCommentsResource(): void
     {
         $this->assertInstanceOf(CommentsResource::class, $this->client->comments());
+    }
+
+    public function testDocumentsReturnsDocumentsResource(): void
+    {
+        $this->assertInstanceOf(DocumentsResource::class, $this->client->documents());
+    }
+
+    public function testUploadsReturnsUploadsResource(): void
+    {
+        $this->assertInstanceOf(UploadsResource::class, $this->client->uploads());
     }
 
     public function testGetRequest(): void

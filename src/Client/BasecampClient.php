@@ -10,11 +10,13 @@ use Schmunk42\BasecampApi\Authentication\AuthenticationInterface;
 use Schmunk42\BasecampApi\Exception\AuthenticationException;
 use Schmunk42\BasecampApi\Exception\RequestException;
 use Schmunk42\BasecampApi\Resource\CommentsResource;
+use Schmunk42\BasecampApi\Resource\DocumentsResource;
 use Schmunk42\BasecampApi\Resource\MessagesResource;
 use Schmunk42\BasecampApi\Resource\PeopleResource;
 use Schmunk42\BasecampApi\Resource\ProjectsResource;
 use Schmunk42\BasecampApi\Resource\TodolistsResource;
 use Schmunk42\BasecampApi\Resource\TodosResource;
+use Schmunk42\BasecampApi\Resource\UploadsResource;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -38,6 +40,8 @@ final class BasecampClient
     private ?PeopleResource $people = null;
     private ?MessagesResource $messages = null;
     private ?CommentsResource $comments = null;
+    private ?DocumentsResource $documents = null;
+    private ?UploadsResource $uploads = null;
 
     public function __construct(
         private readonly string $accountId,
@@ -98,6 +102,22 @@ final class BasecampClient
     }
 
     /**
+     * Get Documents resource client
+     */
+    public function documents(): DocumentsResource
+    {
+        return $this->documents ??= new DocumentsResource($this);
+    }
+
+    /**
+     * Get Uploads (Attachments) resource client
+     */
+    public function uploads(): UploadsResource
+    {
+        return $this->uploads ??= new UploadsResource($this);
+    }
+
+    /**
      * Make a GET request to the API
      *
      * @param array<string, mixed> $query
@@ -111,11 +131,20 @@ final class BasecampClient
     /**
      * Make a POST request to the API
      *
-     * @param array<string, mixed> $data
+     * @param array<string, mixed>|string $data Array for JSON or string for raw body
+     * @param array<string, string> $headers Optional custom headers for raw body uploads
      * @return array<string, mixed>
      */
-    public function post(string $endpoint, array $data = []): array
+    public function post(string $endpoint, array|string $data = [], array $headers = []): array
     {
+        if (is_string($data)) {
+            // Raw body upload (e.g., file attachments)
+            return $this->request('POST', $endpoint, [
+                'body' => $data,
+                'headers' => $headers,
+            ]);
+        }
+
         return $this->request('POST', $endpoint, ['json' => $data]);
     }
 
