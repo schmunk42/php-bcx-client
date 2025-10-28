@@ -1,5 +1,10 @@
 # Basecamp Classic (BCX) API Client for PHP
 
+[![CI](https://github.com/schmunk42/php-bcx-api/actions/workflows/ci.yml/badge.svg)](https://github.com/schmunk42/php-bcx-api/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/schmunk42/php-bcx-api/branch/main/graph/badge.svg)](https://codecov.io/gh/schmunk42/php-bcx-api)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D8.4-blue.svg)](https://php.net/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 A modern, type-safe PHP 8.4 client for the Basecamp Classic API with OAuth 2.0 support.
 
 ## Features
