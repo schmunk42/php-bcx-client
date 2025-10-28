@@ -70,4 +70,90 @@ final class ProjectsResourceTest extends TestCase
         $this->assertIsArray($project);
         $this->assertSame(456, $project['id']);
     }
+
+    public function testUpdate(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                'id' => 123,
+                'name' => 'Updated Project',
+                'description' => 'Updated description',
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new ProjectsResource($client);
+
+        $project = $resource->update(123, [
+            'name' => 'Updated Project',
+            'description' => 'Updated description',
+        ]);
+
+        $this->assertIsArray($project);
+        $this->assertSame(123, $project['id']);
+        $this->assertSame('Updated Project', $project['name']);
+        $this->assertSame('Updated description', $project['description']);
+    }
+
+    public function testDelete(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse('', ['http_code' => 204]),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new ProjectsResource($client);
+
+        // Should not throw an exception
+        $resource->delete(123);
+
+        $this->assertTrue(true); // Assert test reached this point
+    }
+
+    public function testActivate(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                'id' => 123,
+                'name' => 'Activated Project',
+                'archived' => false,
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new ProjectsResource($client);
+
+        $project = $resource->activate(123);
+
+        $this->assertIsArray($project);
+        $this->assertSame(123, $project['id']);
+        $this->assertFalse($project['archived']);
+    }
+
+    public function testArchived(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 605816632,
+                    'name' => 'Archived Project',
+                    'archived' => true,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new ProjectsResource($client);
+
+        $projects = $resource->archived();
+
+        $this->assertIsArray($projects);
+        $this->assertCount(1, $projects);
+        $this->assertSame(605816632, $projects[0]['id']);
+        $this->assertTrue($projects[0]['archived']);
+    }
 }

@@ -68,7 +68,7 @@ final class BasecampClientTest extends TestCase
     {
         $expiredAuth = new OAuth2Authentication(
             'expired-token',
-            (new \DateTimeImmutable())->modify('-1 hour')
+            new \DateTimeImmutable()->modify('-1 hour')
         );
 
         $client = new BasecampClient('999999999', $expiredAuth);

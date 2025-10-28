@@ -234,17 +234,14 @@ The library uses OAuth 2.0 for secure authentication. Key points:
 - Use refresh tokens to obtain new access tokens
 - Personal access tokens available for testing (not for production)
 
-**Complete Guide:**
-See [docs/OAUTH.md](../docs/OAUTH.md) for:
-- Step-by-step OAuth implementation
-- Token refresh mechanism
-- Security best practices
-- Troubleshooting common issues
-- Complete code examples
+**Documentation:**
+- [docs/OAUTH.md](../docs/OAUTH.md) - Complete step-by-step setup guide
+- [docs/OAUTH-EXAMPLES.md](../docs/OAUTH-EXAMPLES.md) - Code examples and patterns
 
 ## References
 
-- [OAuth 2.0 Implementation Guide](../docs/OAUTH.md) - Complete OAuth guide
+- [OAuth Setup Guide](../docs/OAUTH.md) - Step-by-step OAuth setup
+- [OAuth Code Examples](../docs/OAUTH-EXAMPLES.md) - PHP implementation examples
 - [Basecamp OAuth Documentation](https://github.com/basecamp/api/blob/master/sections/authentication.md)
 - Legacy PHP 5.x implementation: https://github.com/netvlies/basecamp-php
 - Symfony HttpClient: https://symfony.com/doc/current/http_client.html

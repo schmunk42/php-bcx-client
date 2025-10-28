@@ -1,539 +1,517 @@
-# OAuth 2.0 Authentication Guide
+# Setting Up a Basecamp Classic API Client
 
-Complete guide for implementing OAuth 2.0 authentication with the Basecamp Classic API.
-
-## Table of Contents
-
-- [Overview](#overview)
-- [OAuth Flow](#oauth-flow)
-- [Step-by-Step Implementation](#step-by-step-implementation)
-- [Token Management](#token-management)
-- [Security Best Practices](#security-best-practices)
-- [Troubleshooting](#troubleshooting)
+Complete step-by-step guide to set up OAuth 2.0 authentication for the Basecamp Classic (BCX) API.
 
 ## Overview
 
-Basecamp Classic uses OAuth 2.0 for authentication. This provides:
+This guide walks you through setting up a Basecamp Classic API client from registration to making your first API call. The process takes approximately 10-15 minutes.
 
-- **Secure authentication** without exposing user credentials
-- **Scoped access** to user data
-- **Token expiration** for enhanced security
-- **Refresh tokens** for long-lived sessions
+### What You'll Need
 
-### Key Concepts
+- A Basecamp Classic account
+- Basic command line knowledge
+- Docker installed (recommended) OR PHP 8.4+ installed locally
 
-- **Client ID**: Unique identifier for your application
-- **Client Secret**: Secret key for your application (never expose publicly)
-- **Authorization Code**: Temporary code exchanged for access token
-- **Access Token**: Used to authenticate API requests (expires after 2 weeks)
-- **Refresh Token**: Used to obtain new access tokens without user interaction
-- **Account ID**: Your Basecamp account identifier (used in API URLs)
+### What You'll Get
 
-## OAuth Flow
+- OAuth 2.0 credentials (Client ID & Secret)
+- Access token for API requests
+- Account ID for your Basecamp account
+- Working API client ready to use
+
+---
+
+## Step 1: Register Your Application
+
+### 1.1 Go to Basecamp Launchpad
+
+Visit: **https://launchpad.37signals.com/integrations**
+
+Log in with your Basecamp account credentials.
+
+### 1.2 Create New Application
+
+Click **"Register another application"**
+
+### 1.3 Fill in Application Details
+
+| Field | What to Enter | Example |
+|-------|---------------|---------|
+| **Name** | Your application name (visible to users) | "My Company BCX Integration" |
+| **Company** | Your organization name | "ACME Corp" |
+| **Website** | Your website or app URL | "https://mycompany.com" |
+| **Redirect URI** | OAuth callback URL | Development: `http://localhost:8080/callback`<br>Production: `https://myapp.com/oauth/callback` |
+
+**Important Notes:**
+- The Redirect URI must match **exactly** when making OAuth requests
+- For local testing, use `http://localhost:8080/callback`
+- For production, use HTTPS
+
+### 1.4 Save Your Credentials
+
+After registration, you'll receive:
+
+- **Client ID**: `532cdd5d1492b2fb99182070c08519d353017ec9` (example)
+- **Client Secret**: `a8f3d9e2b7c4... ` (example - keep this secret!)
+
+**⚠️ Important:** Store these securely. Never commit Client Secret to version control.
+
+---
+
+## Step 2: Set Up Your Development Environment
+
+### Option A: Using Docker (Recommended)
+
+```bash
+# On Host
+
+# Clone the repository
+git clone https://github.com/schmunk42/php-bcx-client.git
+cd php-bcx-client
+
+# Copy environment template
+cp .env.example .env
+
+# Edit .env and add your credentials
+nano .env
+```
+
+Add these lines to `.env`:
+```env
+BASECAMP_CLIENT_ID=your-client-id-from-step-1
+BASECAMP_CLIENT_SECRET=your-client-secret-from-step-1
+BASECAMP_REDIRECT_URI=http://localhost:8080/callback
+```
+
+### Option B: Using Native PHP
+
+```bash
+# On Host
+
+# Install via Composer
+composer require schmunk42/php-bcx-client
+
+# Set environment variables
+export BASECAMP_CLIENT_ID="your-client-id"
+export BASECAMP_CLIENT_SECRET="your-client-secret"
+export BASECAMP_REDIRECT_URI="http://localhost:8080/callback"
+```
+
+---
+
+## Step 3: Get Your OAuth Access Token
+
+### 3.1 Run the OAuth Flow Script
+
+**With Docker:**
+```bash
+# On Host
+make oauth-flow
+```
+
+**With Native PHP:**
+```bash
+# On Host
+php vendor/schmunk42/php-bcx-client/examples/oauth-flow.php
+```
+
+### 3.2 Authorize Your Application
+
+The script will display an authorization URL:
 
 ```
-┌──────────┐                                           ┌──────────┐
-│          │                                           │          │
-│  User    │                                           │ Basecamp │
-│          │                                           │          │
-└────┬─────┘                                           └────┬─────┘
-     │                                                      │
-     │  1. Click "Connect to Basecamp"                     │
-     ├─────────────────────────────────────────────────────>
-     │                                                      │
-     │  2. Redirect to authorization URL                   │
-     <─────────────────────────────────────────────────────┤
-     │                                                      │
-     │  3. User logs in and authorizes                     │
-     ├─────────────────────────────────────────────────────>
-     │                                                      │
-     │  4. Redirect with authorization code                │
-     <─────────────────────────────────────────────────────┤
-     │                                                      │
-┌────┴─────┐                                           ┌────┴─────┐
-│          │                                           │          │
-│ Your App │                                           │ Basecamp │
-│          │                                           │          │
-└────┬─────┘                                           └────┬─────┘
-     │                                                      │
-     │  5. Exchange code for access token                  │
-     ├─────────────────────────────────────────────────────>
-     │                                                      │
-     │  6. Return access token + refresh token             │
-     <─────────────────────────────────────────────────────┤
-     │                                                      │
-     │  7. Make API requests with access token             │
-     ├─────────────────────────────────────────────────────>
-     │                                                      │
+Step 1: Authorization URL
+------------------------
+Direct users to this URL:
+https://launchpad.37signals.com/authorization/new?type=web_server&client_id=...
 ```
 
-## Step-by-Step Implementation
+**Actions:**
+1. **Copy the URL** and open it in your browser
+2. **Log in** to Basecamp if prompted
+3. **Click "Yes, I'll allow access"** to authorize your application
+4. You'll be redirected to your callback URL
 
-### 1. Register Your Application
+### 3.3 Get the Authorization Code
 
-Visit: https://launchpad.37signals.com/integrations
+After authorization, you'll be redirected to:
+```
+http://localhost:8080/callback?code=29a0307c1234567890abcdef
+```
 
-**Required Information:**
-- **Name**: Your application name (visible to users)
-- **Company/Organization**: Your company name
-- **Website URL**: Your application's website
-- **Redirect URI**: Where users return after authorization
-  - Production: `https://yourapp.com/oauth/callback`
-  - Development: `http://localhost:8080/oauth/callback`
+**Extract the code:** The part after `code=` is your authorization code (e.g., `29a0307c1234567890abcdef`)
 
-**After Registration:**
-- Save your **Client ID**
-- Save your **Client Secret** (keep secure!)
+**Note:** If you see a "This site can't be reached" error, that's normal! Just copy the code from the URL bar.
 
-### 2. Build Authorization URL
+### 3.4 Exchange Code for Token
+
+Paste the authorization code back into the terminal when prompted:
+
+```
+Enter the authorization code from the callback URL (or 'skip' to exit): 29a0307c1234567890abcdef
+```
+
+The script will exchange the code for an access token and display:
+
+```
+Step 2: Exchange Code for Access Token
+--------------------------------------
+Success! Token obtained:
+  Access Token: BAhbB0kiAbB7ImNsaWVu...
+  Expires In: 1209600 seconds (14 days)
+  Refresh Token: BAhbB0kiAbB7ImNsaWVu...
+```
+
+---
+
+## Step 4: Get Your Account Information
+
+The script automatically retrieves your account information:
+
+```
+Step 3: Get Account Information
+-------------------------------
+User Information:
+  ID: 798629
+  Name: John Doe
+  Email: john@example.com
+
+Basecamp Classic Accounts:
+  - ACME Corp (ID: 1757700)
+    URL: https://basecamp.com/1757700/api/v1
+```
+
+**Save the Account ID** - you'll need this for API requests (e.g., `1757700`)
+
+---
+
+## Step 5: Test the API Client
+
+The script will test the API connection:
+
+```
+Step 4: Test API Client
+-----------------------
+Current User (via API):
+  ID: 42247
+  Name: John Doe
+  Email: john@example.com
+
+Projects (64 total):
+  - [18909015] Project Alpha
+  - [16276980] Project Beta
+  - [3862833] Project Gamma
+  ... and 61 more
+```
+
+✅ **Success!** Your API client is working correctly.
+
+---
+
+## Step 6: Save Your Credentials
+
+The script outputs all credentials needed:
+
+```
+Step 5: Save These Values
+-------------------------
+Add these to your .env file:
+
+BASECAMP_ACCOUNT_ID=1757700
+BASECAMP_ACCESS_TOKEN=BAhbB0kiAbB7ImNsaWVu...
+BASECAMP_REFRESH_TOKEN=BAhbB0kiAbB7ImNsaWVu...
+```
+
+### 6.1 Update Your .env File
+
+```bash
+# On Host
+nano .env
+```
+
+Add or update these values:
+```env
+# OAuth Credentials (from Step 1)
+BASECAMP_CLIENT_ID=532cdd5d1492b2fb99182070c08519d353017ec9
+BASECAMP_CLIENT_SECRET=a8f3d9e2b7c4...
+BASECAMP_REDIRECT_URI=http://localhost:8080/callback
+
+# API Credentials (from OAuth flow)
+BASECAMP_ACCOUNT_ID=1757700
+BASECAMP_ACCESS_TOKEN=BAhbB0kiAbB7ImNsaWVu...
+BASECAMP_REFRESH_TOKEN=BAhbB0kiAbB7ImNsaWVu...
+```
+
+### 6.2 Security Check
+
+✅ Ensure `.env` is in your `.gitignore` (already configured)
+✅ Never commit `.env` to version control
+✅ Keep Client Secret and tokens secure
+
+---
+
+## Step 7: Use the API Client
+
+### 7.1 Basic Usage Example
+
+**With Docker:**
+```bash
+# On Host
+make example
+```
+
+**With Native PHP:**
+```bash
+# On Host
+php vendor/schmunk42/php-bcx-client/examples/basic-usage.php
+```
+
+### 7.2 In Your Own Code
 
 ```php
 <?php
 
-$clientId = 'your-client-id';
-$redirectUri = 'https://yourapp.com/oauth/callback';
-
-$authorizationUrl = sprintf(
-    'https://launchpad.37signals.com/authorization/new?type=web_server&client_id=%s&redirect_uri=%s',
-    urlencode($clientId),
-    urlencode($redirectUri)
-);
-
-// Redirect user to this URL
-header('Location: ' . $authorizationUrl);
-exit;
-```
-
-### 3. Handle Callback
-
-After user authorizes, Basecamp redirects to your `redirect_uri`:
-
-```
-https://yourapp.com/oauth/callback?code=abc123def456&state=optional_state
-```
-
-### 4. Exchange Code for Access Token
-
-```php
-<?php
-
-$clientId = 'your-client-id';
-$clientSecret = 'your-client-secret';
-$redirectUri = 'https://yourapp.com/oauth/callback';
-$code = $_GET['code']; // From callback URL
-
-// Prepare token request
-$tokenUrl = 'https://launchpad.37signals.com/authorization/token';
-$data = [
-    'type' => 'web_server',
-    'client_id' => $clientId,
-    'client_secret' => $clientSecret,
-    'redirect_uri' => $redirectUri,
-    'code' => $code,
-];
-
-// Make request
-$ch = curl_init($tokenUrl);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Content-Type: application/x-www-form-urlencoded',
-    'User-Agent: YourApp (yourapp.com)',
-]);
-
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-
-if ($httpCode !== 200) {
-    die('Token request failed: ' . $response);
-}
-
-$tokenData = json_decode($response, true);
-
-// Token data:
-// {
-//   "access_token": "BAhbByIBsHsidmVyc2lvbiI6MSwidXNlcl9pZCI...",
-//   "expires_in": 1209600,  // 2 weeks in seconds
-//   "refresh_token": "refresh-token-here"
-// }
-
-$accessToken = $tokenData['access_token'];
-$refreshToken = $tokenData['refresh_token'];
-$expiresIn = $tokenData['expires_in'];
-
-// Store these securely (database, session, etc.)
-```
-
-### 5. Get Account Information
-
-```php
-<?php
-
-$accessToken = 'your-access-token';
-
-$ch = curl_init('https://launchpad.37signals.com/authorization.json');
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $accessToken,
-    'User-Agent: YourApp (yourapp.com)',
-]);
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-$accounts = json_decode($response, true);
-
-// Response:
-// {
-//   "identity": {
-//     "id": 12345678,
-//     "email": "user@example.com",
-//     "first_name": "John",
-//     "last_name": "Doe"
-//   },
-//   "accounts": [
-//     {
-//       "product": "bcx",
-//       "id": 999999999,
-//       "name": "Your Company",
-//       "href": "https://basecamp.com/999999999/api/v1"
-//     }
-//   ]
-// }
-
-foreach ($accounts['accounts'] as $account) {
-    if ($account['product'] === 'bcx') {
-        $accountId = $account['id'];
-        // Use this account ID with the API client
-        break;
-    }
-}
-```
-
-### 6. Use with API Client
-
-```php
-<?php
+require 'vendor/autoload.php';
 
 use Schmunk42\BasecampApi\Authentication\OAuth2Authentication;
 use Schmunk42\BasecampApi\Client\BasecampClient;
 
-$accessToken = 'your-access-token';
-$accountId = '999999999';
+// Load credentials from environment or .env
+$accountId = getenv('BASECAMP_ACCOUNT_ID');
+$accessToken = getenv('BASECAMP_ACCESS_TOKEN');
 
-// Calculate expiry date (2 weeks from now)
-$expiresAt = (new DateTimeImmutable())->modify('+14 days');
-
-// Create authentication
-$auth = new OAuth2Authentication($accessToken, $expiresAt);
-
-// Create client
+// Create authenticated client
+$auth = new OAuth2Authentication($accessToken);
 $client = new BasecampClient($accountId, $auth);
 
-// Make API calls
+// Get all projects
 $projects = $client->projects()->all();
-```
 
-## Token Management
-
-### Storing Tokens Securely
-
-**Database Example:**
-
-```sql
-CREATE TABLE oauth_tokens (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    access_token TEXT NOT NULL,
-    refresh_token TEXT NOT NULL,
-    expires_at DATETIME NOT NULL,
-    account_id VARCHAR(50) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    INDEX idx_user_id (user_id),
-    INDEX idx_expires_at (expires_at)
-);
-```
-
-### Refreshing Access Tokens
-
-Access tokens expire after 2 weeks. Refresh them before expiration:
-
-```php
-<?php
-
-function refreshAccessToken(string $clientId, string $clientSecret, string $refreshToken): array
-{
-    $tokenUrl = 'https://launchpad.37signals.com/authorization/token';
-    $data = [
-        'type' => 'refresh',
-        'client_id' => $clientId,
-        'client_secret' => $clientSecret,
-        'refresh_token' => $refreshToken,
-    ];
-
-    $ch = curl_init($tokenUrl);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($httpCode !== 200) {
-        throw new Exception('Token refresh failed: ' . $response);
-    }
-
-    return json_decode($response, true);
+foreach ($projects as $project) {
+    echo sprintf("[%d] %s\n", $project['id'], $project['name']);
 }
 
-// Usage
-$tokenData = refreshAccessToken($clientId, $clientSecret, $refreshToken);
-$newAccessToken = $tokenData['access_token'];
-$newRefreshToken = $tokenData['refresh_token']; // May be the same or new
+// Get current user
+$me = $client->people()->me();
+echo "Logged in as: {$me['name']}\n";
 
-// Update stored tokens
+// Get todolists for a project
+$todolists = $client->todolists()->all($projectId);
+
+// Get todos in a todolist
+$todos = $client->todos()->all($projectId, $todolistId);
 ```
 
-### Automatic Token Refresh
+See [OAUTH-EXAMPLES.md](./OAUTH-EXAMPLES.md) for more code examples.
 
-```php
-<?php
+---
 
-class TokenManager
-{
-    private string $clientId;
-    private string $clientSecret;
-    private string $accessToken;
-    private string $refreshToken;
-    private DateTimeImmutable $expiresAt;
+## Step 8: Token Refresh (When Tokens Expire)
 
-    public function getValidAccessToken(): string
-    {
-        // Refresh if expires within 1 hour
-        $oneHourFromNow = (new DateTimeImmutable())->modify('+1 hour');
+Access tokens expire after **14 days**. Use the refresh token to get a new one:
 
-        if ($this->expiresAt < $oneHourFromNow) {
-            $this->refreshToken();
-        }
+### 8.1 Run Token Refresh
 
-        return $this->accessToken;
-    }
-
-    private function refreshToken(): void
-    {
-        $tokenData = $this->requestTokenRefresh();
-
-        $this->accessToken = $tokenData['access_token'];
-        $this->refreshToken = $tokenData['refresh_token'];
-        $this->expiresAt = (new DateTimeImmutable())
-            ->modify(sprintf('+%d seconds', $tokenData['expires_in']));
-
-        // Save to database
-        $this->saveToDatabase();
-    }
-
-    private function requestTokenRefresh(): array
-    {
-        // Implementation from refreshAccessToken() above
-    }
-
-    private function saveToDatabase(): void
-    {
-        // Save tokens to database
-    }
-}
+**With Docker:**
+```bash
+# On Host
+make token-refresh
 ```
 
-## Security Best Practices
-
-### 1. Protect Client Secret
-
-**DO:**
-- Store in environment variables
-- Keep in secure server-side configuration
-- Use secrets management services (AWS Secrets Manager, HashiCorp Vault)
-
-**DON'T:**
-- Commit to version control
-- Expose in client-side code
-- Share in public documentation
-
-### 2. Validate Redirect URI
-
-```php
-<?php
-
-$allowedRedirectUris = [
-    'https://yourapp.com/oauth/callback',
-    'http://localhost:8080/oauth/callback', // Development only
-];
-
-$redirectUri = $_GET['redirect_uri'] ?? '';
-
-if (!in_array($redirectUri, $allowedRedirectUris, true)) {
-    die('Invalid redirect URI');
-}
+**With Native PHP:**
+```bash
+# On Host
+export BASECAMP_REFRESH_TOKEN="your-refresh-token"
+php vendor/schmunk42/php-bcx-client/examples/token-refresh.php
 ```
 
-### 3. Use State Parameter
+### 8.2 Update .env with New Token
 
-Prevent CSRF attacks:
-
-```php
-<?php
-
-// When building authorization URL
-session_start();
-$state = bin2hex(random_bytes(32));
-$_SESSION['oauth_state'] = $state;
-
-$authUrl = sprintf(
-    'https://launchpad.37signals.com/authorization/new?type=web_server&client_id=%s&redirect_uri=%s&state=%s',
-    urlencode($clientId),
-    urlencode($redirectUri),
-    urlencode($state)
-);
-
-// When handling callback
-session_start();
-$receivedState = $_GET['state'] ?? '';
-$expectedState = $_SESSION['oauth_state'] ?? '';
-
-if (!hash_equals($expectedState, $receivedState)) {
-    die('Invalid state parameter - possible CSRF attack');
-}
-
-unset($_SESSION['oauth_state']);
+The script outputs:
+```
+Success! New token obtained:
+  Access Token: BAhbB0kiAbB7NEW_TOKEN...
+  Expires In: 1209600 seconds (14 days)
+  Refresh Token: BAhbB0kiAbB7NEW_REFRESH...
 ```
 
-### 4. Encrypt Stored Tokens
+Update your `.env` file with the new tokens.
 
-```php
-<?php
+---
 
-function encryptToken(string $token, string $key): string
-{
-    $cipher = 'aes-256-gcm';
-    $ivLength = openssl_cipher_iv_length($cipher);
-    $iv = random_bytes($ivLength);
+## Quick Reference
 
-    $encrypted = openssl_encrypt($token, $cipher, $key, 0, $iv, $tag);
+### OAuth Endpoints
 
-    return base64_encode($iv . $tag . $encrypted);
-}
+| Purpose | URL |
+|---------|-----|
+| Register App | https://launchpad.37signals.com/integrations |
+| Authorization | https://launchpad.37signals.com/authorization/new |
+| Token Exchange | https://launchpad.37signals.com/authorization/token |
+| Account Info | https://launchpad.37signals.com/authorization.json |
+| API Base | https://basecamp.com/{ACCOUNT_ID}/api/v1 |
 
-function decryptToken(string $encryptedToken, string $key): string
-{
-    $cipher = 'aes-256-gcm';
-    $decoded = base64_decode($encryptedToken);
+### Token Lifetimes
 
-    $ivLength = openssl_cipher_iv_length($cipher);
-    $iv = substr($decoded, 0, $ivLength);
-    $tag = substr($decoded, $ivLength, 16);
-    $encrypted = substr($decoded, $ivLength + 16);
+| Token Type | Lifetime | Renewable |
+|------------|----------|-----------|
+| Authorization Code | 10 minutes | No - use immediately |
+| Access Token | 14 days (1,209,600 seconds) | Yes - with refresh token |
+| Refresh Token | Indefinite | Yes - returns new token |
 
-    return openssl_decrypt($encrypted, $cipher, $key, 0, $iv, $tag);
-}
+### Common Docker Commands
+
+```bash
+make oauth-flow       # Get OAuth access token
+make token-refresh    # Refresh expired token
+make example          # Run basic usage example
+make shell            # Open container shell
+make test             # Run tests
+make help             # Show all commands
 ```
 
-### 5. Rate Limiting
+### Environment Variables
 
-Implement rate limiting for OAuth endpoints to prevent abuse:
+```env
+# OAuth Setup (from Basecamp Launchpad)
+BASECAMP_CLIENT_ID=...
+BASECAMP_CLIENT_SECRET=...
+BASECAMP_REDIRECT_URI=...
 
-```php
-<?php
-
-// Example: Max 10 token requests per hour per IP
-$key = 'oauth_rate_limit:' . $_SERVER['REMOTE_ADDR'];
-$requests = $redis->incr($key);
-
-if ($requests === 1) {
-    $redis->expire($key, 3600); // 1 hour
-}
-
-if ($requests > 10) {
-    http_response_code(429);
-    die('Rate limit exceeded. Try again later.');
-}
+# API Access (from OAuth flow)
+BASECAMP_ACCOUNT_ID=...
+BASECAMP_ACCESS_TOKEN=...
+BASECAMP_REFRESH_TOKEN=...
 ```
+
+---
 
 ## Troubleshooting
 
-### Common Errors
+### Problem: "redirect_uri_mismatch" Error
 
-#### "invalid_grant" Error
+**Cause:** Redirect URI doesn't match exactly with registered URI
+
+**Solution:**
+1. Check your registered URI in Basecamp Launchpad
+2. Ensure exact match (including http/https, trailing slashes)
+3. Update `.env` with correct URI
+
+### Problem: "invalid_grant" Error
 
 **Causes:**
 - Authorization code already used
-- Code expired (10 minutes)
+- Code expired (10 minute limit)
 - Mismatched redirect URI
 
 **Solution:**
-- Start OAuth flow again
-- Ensure redirect URI matches exactly
+- Start OAuth flow again from Step 3
+- Use authorization code immediately
+- Verify redirect URI matches
 
-#### "unauthorized_client" Error
+### Problem: "unauthorized_client" Error
 
-**Causes:**
-- Invalid client ID or secret
-- Application not registered
-
-**Solution:**
-- Verify credentials in Launchpad
-- Check for typos
-
-#### "invalid_request" Error
-
-**Causes:**
-- Missing required parameters
-- Malformed request
+**Cause:** Invalid Client ID or Client Secret
 
 **Solution:**
-- Check all required fields are present
-- Verify parameter formatting
+1. Verify credentials in Basecamp Launchpad
+2. Check for typos in `.env` file
+3. Ensure no extra spaces or quotes
 
-### Testing OAuth Flow
+### Problem: 403 Forbidden on API Requests
 
-Use this script to test the complete flow:
+**Causes:**
+- Token not yet active (wait a few seconds)
+- Token expired (14 days)
+- Wrong Account ID
 
+**Solution:**
+1. Wait 10 seconds and try again
+2. Refresh token if expired (Step 8)
+3. Verify Account ID matches account in authorization
+
+### Problem: Container Can't Find Files
+
+**Cause:** Docker image not built or vendor directory missing
+
+**Solution:**
 ```bash
-# See examples/oauth-flow.php
-php examples/oauth-flow.php
+# On Host
+make clean
+make install
+make oauth-flow
 ```
 
-### Debug Logging
+### Problem: "This site can't be reached" at Callback
 
-```php
-<?php
+**This is normal!** The callback URL doesn't need to be a real server.
 
-function logOAuthRequest(string $stage, array $data): void
-{
-    error_log(sprintf(
-        '[OAuth:%s] %s',
-        $stage,
-        json_encode($data, JSON_PRETTY_PRINT)
-    ));
-}
+**Action:**
+1. Don't close the browser
+2. Look at the URL bar
+3. Copy the code after `?code=`
+4. Paste it in the terminal
 
-// Usage
-logOAuthRequest('authorization_start', [
-    'client_id' => $clientId,
-    'redirect_uri' => $redirectUri,
-]);
-```
+---
 
-## Resources
+## Security Best Practices
+
+### ✅ DO
+
+- Store Client Secret in environment variables or secure vaults
+- Use HTTPS for redirect URIs in production
+- Implement state parameter for CSRF protection
+- Encrypt tokens in database
+- Rotate refresh tokens periodically
+- Use secure session storage
+- Implement rate limiting
+
+### ❌ DON'T
+
+- Commit `.env` or credentials to version control
+- Expose Client Secret in client-side code
+- Share tokens publicly
+- Use same credentials across environments
+- Store tokens in plain text in database
+- Hardcode credentials in source code
+- Skip token expiration checks
+
+---
+
+## Next Steps
+
+✅ **Setup Complete!** You now have:
+- OAuth 2.0 credentials
+- Access token for API requests
+- Working API client
+- Automated token refresh
+
+### Continue Learning
+
+- **API Usage**: See [OAUTH-EXAMPLES.md](./OAUTH-EXAMPLES.md) for code examples
+- **Docker Guide**: See [../DOCKER.md](../DOCKER.md) for Docker setup details
+- **API Reference**: See official [Basecamp BCX API Docs](https://github.com/basecamp/bcx-api)
+
+### Production Deployment
+
+Before deploying to production:
+
+1. **Update Redirect URI** to production URL (HTTPS required)
+2. **Secure credentials** using environment variables or secrets manager
+3. **Implement proper error handling** for token expiration
+4. **Add logging** for debugging OAuth issues
+5. **Test token refresh** mechanism
+6. **Set up monitoring** for API rate limits
+
+---
+
+## Additional Resources
 
 - [Basecamp OAuth Documentation](https://github.com/basecamp/api/blob/master/sections/authentication.md)
 - [OAuth 2.0 RFC 6749](https://tools.ietf.org/html/rfc6749)
 - [OAuth 2.0 Security Best Practices](https://tools.ietf.org/html/draft-ietf-oauth-security-topics)
-- [Basecamp API Reference](https://github.com/basecamp/bcx-api)
+- [Basecamp Classic API Reference](https://github.com/basecamp/bcx-api)
 
-## Example Implementation
+---
 
-See [examples/oauth-flow.php](../examples/oauth-flow.php) for a complete working example.
+**Need Help?** Open an issue at: https://github.com/schmunk42/php-bcx-client/issues

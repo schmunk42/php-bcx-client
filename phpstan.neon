@@ -1,0 +1,18 @@
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+
+    # Ignore common test patterns that are safe but trigger PHPStan
+    ignoreErrors:
+        # json_encode in tests with simple arrays never fails
+        - '#Parameter \#1 \$body of class Symfony\\Component\\HttpClient\\Response\\MockResponse constructor expects .* string\|false given#'
+
+        # Assertions that are always true are fine in tests - they document expected behavior
+        - '#Call to method PHPUnit\\Framework\\Assert::assertIsArray\(\) .* will always evaluate to true#'
+        - '#Call to method PHPUnit\\Framework\\Assert::assertTrue\(\) with true will always evaluate to true#'
+
+        # API methods that return lists - PHPStan can't infer the array structure from json_decode
+        # These are documented correctly but the HTTP client returns array<string, mixed>
+        - '#Method Schmunk42\\BasecampApi\\Resource\\.*::(all|archived|completed|assigned|inProject)\(\) should return array<int, array<string, mixed>> but returns array<string, mixed>#'

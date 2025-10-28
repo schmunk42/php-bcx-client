@@ -29,7 +29,7 @@ final class OAuth2AuthenticationTest extends TestCase
 
     public function testIsValidWithFutureExpiry(): void
     {
-        $expiresAt = (new DateTimeImmutable())->modify('+1 hour');
+        $expiresAt = new DateTimeImmutable()->modify('+1 hour');
         $auth = new OAuth2Authentication('test-token', $expiresAt);
 
         $this->assertTrue($auth->isValid());
@@ -37,7 +37,7 @@ final class OAuth2AuthenticationTest extends TestCase
 
     public function testIsNotValidWithPastExpiry(): void
     {
-        $expiresAt = (new DateTimeImmutable())->modify('-1 hour');
+        $expiresAt = new DateTimeImmutable()->modify('-1 hour');
         $auth = new OAuth2Authentication('test-token', $expiresAt);
 
         $this->assertFalse($auth->isValid());

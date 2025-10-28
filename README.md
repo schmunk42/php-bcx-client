@@ -225,8 +225,8 @@ php examples/oauth-flow.php
 
 ### See Also
 
-- [Complete OAuth Guide](./docs/OAUTH.md) - Detailed OAuth implementation guide
-- [OAuth Quick Reference](./docs/OAUTH-QUICK-REFERENCE.md) - Quick reference card
+- [Complete OAuth Setup Guide](./docs/OAUTH.md) - Step-by-step OAuth setup guide
+- [OAuth Code Examples](./docs/OAUTH-EXAMPLES.md) - PHP code examples and patterns
 - [Basecamp OAuth Documentation](https://github.com/basecamp/api/blob/master/sections/authentication.md)
 
 ## Usage Examples
