@@ -11,6 +11,7 @@ use Schmunk42\BasecampApi\Exception\AuthenticationException;
 use Schmunk42\BasecampApi\Exception\RequestException;
 use Schmunk42\BasecampApi\Resource\CommentsResource;
 use Schmunk42\BasecampApi\Resource\DocumentsResource;
+use Schmunk42\BasecampApi\Resource\EventsResource;
 use Schmunk42\BasecampApi\Resource\MessagesResource;
 use Schmunk42\BasecampApi\Resource\PeopleResource;
 use Schmunk42\BasecampApi\Resource\ProjectsResource;
@@ -77,6 +78,11 @@ final class BasecampClientTest extends TestCase
     public function testUploadsReturnsUploadsResource(): void
     {
         $this->assertInstanceOf(UploadsResource::class, $this->client->uploads());
+    }
+
+    public function testEventsReturnsEventsResource(): void
+    {
+        $this->assertInstanceOf(EventsResource::class, $this->client->events());
     }
 
     public function testGetRequest(): void

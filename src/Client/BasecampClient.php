@@ -11,6 +11,7 @@ use Schmunk42\BasecampApi\Exception\AuthenticationException;
 use Schmunk42\BasecampApi\Exception\RequestException;
 use Schmunk42\BasecampApi\Resource\CommentsResource;
 use Schmunk42\BasecampApi\Resource\DocumentsResource;
+use Schmunk42\BasecampApi\Resource\EventsResource;
 use Schmunk42\BasecampApi\Resource\MessagesResource;
 use Schmunk42\BasecampApi\Resource\PeopleResource;
 use Schmunk42\BasecampApi\Resource\ProjectsResource;
@@ -42,6 +43,7 @@ final class BasecampClient
     private ?CommentsResource $comments = null;
     private ?DocumentsResource $documents = null;
     private ?UploadsResource $uploads = null;
+    private ?EventsResource $events = null;
 
     public function __construct(
         private readonly string $accountId,
@@ -115,6 +117,14 @@ final class BasecampClient
     public function uploads(): UploadsResource
     {
         return $this->uploads ??= new UploadsResource($this);
+    }
+
+    /**
+     * Get Events resource client
+     */
+    public function events(): EventsResource
+    {
+        return $this->events ??= new EventsResource($this);
     }
 
     /**

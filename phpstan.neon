@@ -15,7 +15,7 @@ parameters:
 
         # API methods that return lists - PHPStan can't infer the array structure from json_decode
         # These are documented correctly but the HTTP client returns array<string, mixed>
-        - '#Method Schmunk42\\BasecampApi\\Resource\\.*::(all|allGlobal|archived|completed|assigned|inProject)\(\) should return array<int, array<string, mixed>> but returns array<string, mixed>#'
+        - '#Method Schmunk42\\BasecampApi\\Resource\\.*::(all|allGlobal|allInProject|allByPerson|archived|completed|assigned|inProject)\(\) should return array<int, array<string, mixed>> but returns array<string, mixed>#'
 
         # Test properties set in setUp() but not read in setUp itself
         - '#Property Schmunk42\\BasecampApi\\Tests\\Unit\\Resource\\.*::\$resource is never read, only written#'
