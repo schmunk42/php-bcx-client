@@ -9,14 +9,17 @@ use Psr\Log\NullLogger;
 use Schmunk42\BasecampApi\Authentication\AuthenticationInterface;
 use Schmunk42\BasecampApi\Exception\AuthenticationException;
 use Schmunk42\BasecampApi\Exception\RequestException;
+use Schmunk42\BasecampApi\Resource\CalendarEventsResource;
 use Schmunk42\BasecampApi\Resource\CommentsResource;
 use Schmunk42\BasecampApi\Resource\DocumentsResource;
 use Schmunk42\BasecampApi\Resource\EventsResource;
+use Schmunk42\BasecampApi\Resource\GroupsResource;
 use Schmunk42\BasecampApi\Resource\MessagesResource;
 use Schmunk42\BasecampApi\Resource\PeopleResource;
 use Schmunk42\BasecampApi\Resource\ProjectsResource;
 use Schmunk42\BasecampApi\Resource\TodolistsResource;
 use Schmunk42\BasecampApi\Resource\TodosResource;
+use Schmunk42\BasecampApi\Resource\TopicsResource;
 use Schmunk42\BasecampApi\Resource\UploadsResource;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
@@ -44,6 +47,9 @@ final class BasecampClient
     private ?DocumentsResource $documents = null;
     private ?UploadsResource $uploads = null;
     private ?EventsResource $events = null;
+    private ?CalendarEventsResource $calendarEvents = null;
+    private ?TopicsResource $topics = null;
+    private ?GroupsResource $groups = null;
 
     public function __construct(
         private readonly string $accountId,
@@ -125,6 +131,30 @@ final class BasecampClient
     public function events(): EventsResource
     {
         return $this->events ??= new EventsResource($this);
+    }
+
+    /**
+     * Get Calendar Events resource client
+     */
+    public function calendarEvents(): CalendarEventsResource
+    {
+        return $this->calendarEvents ??= new CalendarEventsResource($this);
+    }
+
+    /**
+     * Get Topics resource client
+     */
+    public function topics(): TopicsResource
+    {
+        return $this->topics ??= new TopicsResource($this);
+    }
+
+    /**
+     * Get Groups resource client
+     */
+    public function groups(): GroupsResource
+    {
+        return $this->groups ??= new GroupsResource($this);
     }
 
     /**

@@ -4,14 +4,16 @@ FROM php:8.4-cli-alpine
 RUN apk add --no-cache \
     git \
     unzip \
-    zip \
-    libzip-dev \
-    $PHPIZE_DEPS
+    zip
 
-# Install PHP extensions
-RUN docker-php-ext-install \
+# Install mlocati/docker-php-extension-installer
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+
+# Install PHP extensions using mlocati installer
+RUN install-php-extensions \
     zip \
-    opcache
+    opcache \
+    pcov
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

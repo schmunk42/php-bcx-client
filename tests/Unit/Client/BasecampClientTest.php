@@ -9,14 +9,17 @@ use Schmunk42\BasecampApi\Authentication\OAuth2Authentication;
 use Schmunk42\BasecampApi\Client\BasecampClient;
 use Schmunk42\BasecampApi\Exception\AuthenticationException;
 use Schmunk42\BasecampApi\Exception\RequestException;
+use Schmunk42\BasecampApi\Resource\CalendarEventsResource;
 use Schmunk42\BasecampApi\Resource\CommentsResource;
 use Schmunk42\BasecampApi\Resource\DocumentsResource;
 use Schmunk42\BasecampApi\Resource\EventsResource;
+use Schmunk42\BasecampApi\Resource\GroupsResource;
 use Schmunk42\BasecampApi\Resource\MessagesResource;
 use Schmunk42\BasecampApi\Resource\PeopleResource;
 use Schmunk42\BasecampApi\Resource\ProjectsResource;
 use Schmunk42\BasecampApi\Resource\TodolistsResource;
 use Schmunk42\BasecampApi\Resource\TodosResource;
+use Schmunk42\BasecampApi\Resource\TopicsResource;
 use Schmunk42\BasecampApi\Resource\UploadsResource;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -83,6 +86,21 @@ final class BasecampClientTest extends TestCase
     public function testEventsReturnsEventsResource(): void
     {
         $this->assertInstanceOf(EventsResource::class, $this->client->events());
+    }
+
+    public function testCalendarEventsReturnsCalendarEventsResource(): void
+    {
+        $this->assertInstanceOf(CalendarEventsResource::class, $this->client->calendarEvents());
+    }
+
+    public function testTopicsReturnsTopicsResource(): void
+    {
+        $this->assertInstanceOf(TopicsResource::class, $this->client->topics());
+    }
+
+    public function testGroupsReturnsGroupsResource(): void
+    {
+        $this->assertInstanceOf(GroupsResource::class, $this->client->groups());
     }
 
     public function testGetRequest(): void

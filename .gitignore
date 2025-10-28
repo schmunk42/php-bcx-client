@@ -9,3 +9,4 @@
 .env
 .claude/settings.local.json
 _tasks
+/coverage/
