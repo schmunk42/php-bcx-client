@@ -1,0 +1,10 @@
+/vendor/
+/composer.lock
+/.phpunit.cache
+/.php-cs-fixer.cache
+/phpunit.xml
+/.idea/
+*.log
+.DS_Store
+.env
+.claude/settings.local.json

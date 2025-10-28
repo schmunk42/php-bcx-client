@@ -1,0 +1,18 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/repo
+      - ./vendor:/repo/vendor
+    environment:
+      - BASECAMP_ACCOUNT_ID=${BASECAMP_ACCOUNT_ID:-999999999}
+      - BASECAMP_ACCESS_TOKEN=${BASECAMP_ACCESS_TOKEN:-your-token-here}
+      - BASECAMP_CLIENT_ID=${BASECAMP_CLIENT_ID:-your-client-id}
+      - BASECAMP_CLIENT_SECRET=${BASECAMP_CLIENT_SECRET:-your-client-secret}
+      - BASECAMP_REDIRECT_URI=${BASECAMP_REDIRECT_URI:-http://localhost:8080/callback}
+      - BASECAMP_REFRESH_TOKEN=${BASECAMP_REFRESH_TOKEN:-your-refresh-token}
+    working_dir: /repo
+    stdin_open: true
+    tty: true
