@@ -28,7 +28,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 /**
  * Main client for interacting with Basecamp 2 (BCX) API
  */
-final class BasecampClient
+class BasecampClient
 {
     private const BASE_URL = 'https://basecamp.com';
     private const API_VERSION = '/api/v1';
