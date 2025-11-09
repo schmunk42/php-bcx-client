@@ -186,4 +186,186 @@ final class TodosResourceTest extends TestCase
         $this->assertSame(123, $todo['id']);
         $this->assertFalse($todo['completed']);
     }
+
+    public function testAllInProject(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'content' => 'Todo from list A',
+                    'completed' => false,
+                ],
+                [
+                    'id' => 2,
+                    'content' => 'Todo from list B',
+                    'completed' => true,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodosResource($client);
+
+        $todos = $resource->allInProject(123456);
+
+        $this->assertIsArray($todos);
+        $this->assertCount(2, $todos);
+        $this->assertSame(1, $todos[0]['id']);
+        $this->assertSame(2, $todos[1]['id']);
+    }
+
+    public function testAllInProjectWithDueSince(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'content' => 'Upcoming todo',
+                    'due_at' => '2025-12-31',
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodosResource($client);
+
+        $todos = $resource->allInProject(123456, '2025-01-01');
+
+        $this->assertIsArray($todos);
+        $this->assertCount(1, $todos);
+        $this->assertSame(1, $todos[0]['id']);
+    }
+
+    public function testGetCompleted(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'content' => 'Completed task',
+                    'completed' => true,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodosResource($client);
+
+        $todos = $resource->getCompleted(123456, 789);
+
+        $this->assertIsArray($todos);
+        $this->assertCount(1, $todos);
+        $this->assertSame(1, $todos[0]['id']);
+        $this->assertTrue($todos[0]['completed']);
+    }
+
+    public function testGetRemaining(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'content' => 'Active task',
+                    'completed' => false,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodosResource($client);
+
+        $todos = $resource->getRemaining(123456, 789);
+
+        $this->assertIsArray($todos);
+        $this->assertCount(1, $todos);
+        $this->assertSame(1, $todos[0]['id']);
+        $this->assertFalse($todos[0]['completed']);
+    }
+
+    public function testGetTrashed(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'content' => 'Deleted task',
+                    'trashed' => true,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodosResource($client);
+
+        $todos = $resource->getTrashed(123456, 789);
+
+        $this->assertIsArray($todos);
+        $this->assertCount(1, $todos);
+        $this->assertSame(1, $todos[0]['id']);
+        $this->assertTrue($todos[0]['trashed']);
+    }
+
+    public function testGetAllCompletedInProject(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'content' => 'Completed task 1',
+                    'completed' => true,
+                ],
+                [
+                    'id' => 2,
+                    'content' => 'Completed task 2',
+                    'completed' => true,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodosResource($client);
+
+        $todos = $resource->getAllCompletedInProject(123456);
+
+        $this->assertIsArray($todos);
+        $this->assertCount(2, $todos);
+        $this->assertTrue($todos[0]['completed']);
+        $this->assertTrue($todos[1]['completed']);
+    }
+
+    public function testGetAllRemainingInProject(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'content' => 'Active task 1',
+                    'completed' => false,
+                ],
+                [
+                    'id' => 2,
+                    'content' => 'Active task 2',
+                    'completed' => false,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodosResource($client);
+
+        $todos = $resource->getAllRemainingInProject(123456);
+
+        $this->assertIsArray($todos);
+        $this->assertCount(2, $todos);
+        $this->assertFalse($todos[0]['completed']);
+        $this->assertFalse($todos[1]['completed']);
+    }
 }

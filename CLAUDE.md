@@ -127,9 +127,9 @@ Official Basecamp 2 (BCX) API: https://github.com/basecamp/bcx-api
 ### Implemented Resources
 
 - **Projects**: List, get, create, update, archive/activate projects
-- **Todolists**: Manage todolists within projects
-- **Todos**: CRUD operations on todos, mark complete/incomplete
-- **People**: User management and project access control
+- **Todolists**: Manage todolists within projects, global queries (active/completed/trashed), exclude todos for large lists
+- **Todos**: CRUD operations, mark complete/incomplete, project-level queries, filter by status (completed/remaining/trashed)
+- **People**: User management, project access control, assigned todos, activity events, project access list
 
 ## Docker Setup
 

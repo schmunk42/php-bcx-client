@@ -187,4 +187,157 @@ final class PeopleResourceTest extends TestCase
         $this->assertSame(987654, $access['identity_id']);
         $this->assertTrue($access['admin']);
     }
+
+    public function testGetTrashed(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'name' => 'Deleted User',
+                    'email_address' => 'deleted@example.com',
+                    'trashed' => true,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new PeopleResource($client);
+
+        $trashed = $resource->getTrashed();
+
+        $this->assertIsArray($trashed);
+        $this->assertCount(1, $trashed);
+        $this->assertSame(1, $trashed[0]['id']);
+        $this->assertTrue($trashed[0]['trashed']);
+    }
+
+    public function testGetAssignedTodos(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'name' => 'My Todolist',
+                    'assigned_todos' => [
+                        [
+                            'id' => 101,
+                            'content' => 'Task 1',
+                            'completed' => false,
+                        ],
+                        [
+                            'id' => 102,
+                            'content' => 'Task 2',
+                            'completed' => true,
+                        ],
+                    ],
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new PeopleResource($client);
+
+        $todolists = $resource->getAssignedTodos(149087659);
+
+        $this->assertIsArray($todolists);
+        $this->assertCount(1, $todolists);
+        $this->assertSame(1, $todolists[0]['id']);
+        $this->assertArrayHasKey('assigned_todos', $todolists[0]);
+        $this->assertCount(2, $todolists[0]['assigned_todos']);
+    }
+
+    public function testGetAssignedTodosWithDueSince(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'name' => 'My Todolist',
+                    'assigned_todos' => [
+                        [
+                            'id' => 101,
+                            'content' => 'Upcoming Task',
+                            'due_at' => '2025-12-31',
+                        ],
+                    ],
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new PeopleResource($client);
+
+        $todolists = $resource->getAssignedTodos(149087659, '2025-01-01');
+
+        $this->assertIsArray($todolists);
+        $this->assertCount(1, $todolists);
+        $this->assertArrayHasKey('assigned_todos', $todolists[0]);
+    }
+
+    public function testGetEvents(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'action' => 'created',
+                    'target' => 'Todo',
+                    'created_at' => '2025-01-01T12:00:00Z',
+                ],
+                [
+                    'id' => 2,
+                    'action' => 'updated',
+                    'target' => 'Message',
+                    'created_at' => '2025-01-02T14:30:00Z',
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new PeopleResource($client);
+
+        $events = $resource->getEvents(149087659);
+
+        $this->assertIsArray($events);
+        $this->assertCount(2, $events);
+        $this->assertSame(1, $events[0]['id']);
+        $this->assertSame('created', $events[0]['action']);
+        $this->assertSame('Todo', $events[0]['target']);
+    }
+
+    public function testGetProjects(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'name' => 'Project Alpha',
+                    'description' => 'First project',
+                ],
+                [
+                    'id' => 2,
+                    'name' => 'Project Beta',
+                    'description' => 'Second project',
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new PeopleResource($client);
+
+        $projects = $resource->getProjects(149087659);
+
+        $this->assertIsArray($projects);
+        $this->assertCount(2, $projects);
+        $this->assertSame(1, $projects[0]['id']);
+        $this->assertSame('Project Alpha', $projects[0]['name']);
+        $this->assertSame(2, $projects[1]['id']);
+        $this->assertSame('Project Beta', $projects[1]['name']);
+    }
 }

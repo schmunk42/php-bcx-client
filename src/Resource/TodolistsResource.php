@@ -12,6 +12,46 @@ namespace Schmunk42\BasecampApi\Resource;
 final class TodolistsResource extends AbstractResource
 {
     /**
+     * Get all active todolists across all projects
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function allGlobal(): array
+    {
+        return $this->client->get('/todolists.json');
+    }
+
+    /**
+     * Get all completed todolists across all projects
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getCompletedGlobal(): array
+    {
+        return $this->client->get('/todolists/completed.json');
+    }
+
+    /**
+     * Get all trashed todolists across all projects
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getTrashedGlobal(): array
+    {
+        return $this->client->get('/todolists/trashed.json');
+    }
+
+    /**
+     * Get all assigned todolists
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function assigned(): array
+    {
+        return $this->client->get('/todolists/assigned.json');
+    }
+
+    /**
      * Get all todolists for a project
      *
      * @return array<int, array<string, mixed>>
@@ -32,23 +72,33 @@ final class TodolistsResource extends AbstractResource
     }
 
     /**
-     * Get all assigned todolists
+     * Get all trashed todolists for a project
      *
      * @return array<int, array<string, mixed>>
      */
-    public function assigned(): array
+    public function getTrashed(int $projectId): array
     {
-        return $this->client->get('/todolists/assigned.json');
+        return $this->client->get(sprintf('/projects/%d/todolists/trashed.json', $projectId));
     }
 
     /**
      * Get a specific todolist
      *
+     * @param int $projectId The project ID
+     * @param int $todolistId The todolist ID
+     * @param bool $excludeTodos Whether to exclude todos from the response (recommended for 1000+ items)
      * @return array<string, mixed>
      */
-    public function get(int $projectId, int $todolistId): array
+    public function get(int $projectId, int $todolistId, bool $excludeTodos = false): array
     {
-        return $this->client->get(sprintf('/projects/%d/todolists/%d.json', $projectId, $todolistId));
+        $url = sprintf('/projects/%d/todolists/%d.json', $projectId, $todolistId);
+        $params = [];
+
+        if ($excludeTodos) {
+            $params['exclude_todos'] = 'true';
+        }
+
+        return $this->client->get($url, $params);
     }
 
     /**

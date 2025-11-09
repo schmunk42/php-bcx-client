@@ -198,4 +198,128 @@ final class TodolistsResourceTest extends TestCase
 
         $this->assertTrue(true); // Assert test reached this point
     }
+
+    public function testAllGlobal(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'name' => 'Global Todolist 1',
+                    'completed' => false,
+                ],
+                [
+                    'id' => 2,
+                    'name' => 'Global Todolist 2',
+                    'completed' => false,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodolistsResource($client);
+
+        $todolists = $resource->allGlobal();
+
+        $this->assertIsArray($todolists);
+        $this->assertCount(2, $todolists);
+        $this->assertSame(1, $todolists[0]['id']);
+        $this->assertSame(2, $todolists[1]['id']);
+    }
+
+    public function testGetCompletedGlobal(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'name' => 'Completed Global Todolist',
+                    'completed' => true,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodolistsResource($client);
+
+        $todolists = $resource->getCompletedGlobal();
+
+        $this->assertIsArray($todolists);
+        $this->assertCount(1, $todolists);
+        $this->assertSame(1, $todolists[0]['id']);
+        $this->assertTrue($todolists[0]['completed']);
+    }
+
+    public function testGetTrashedGlobal(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'name' => 'Trashed Global Todolist',
+                    'trashed' => true,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodolistsResource($client);
+
+        $todolists = $resource->getTrashedGlobal();
+
+        $this->assertIsArray($todolists);
+        $this->assertCount(1, $todolists);
+        $this->assertSame(1, $todolists[0]['id']);
+        $this->assertTrue($todolists[0]['trashed']);
+    }
+
+    public function testGetTrashed(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                [
+                    'id' => 1,
+                    'name' => 'Trashed Todolist in Project',
+                    'trashed' => true,
+                ],
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodolistsResource($client);
+
+        $todolists = $resource->getTrashed(123456);
+
+        $this->assertIsArray($todolists);
+        $this->assertCount(1, $todolists);
+        $this->assertSame(1, $todolists[0]['id']);
+        $this->assertTrue($todolists[0]['trashed']);
+    }
+
+    public function testGetWithExcludeTodos(): void
+    {
+        $auth = new OAuth2Authentication('test-token');
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode([
+                'id' => 1,
+                'name' => 'Large Todolist',
+                'description' => 'Has 1000+ todos',
+                'todos' => null,
+            ])),
+        ]);
+
+        $client = new BasecampClient('999999999', $auth, $httpClient);
+        $resource = new TodolistsResource($client);
+
+        $todolist = $resource->get(123456, 1, true);
+
+        $this->assertIsArray($todolist);
+        $this->assertSame(1, $todolist['id']);
+        $this->assertSame('Large Todolist', $todolist['name']);
+        $this->assertNull($todolist['todos']);
+    }
 }

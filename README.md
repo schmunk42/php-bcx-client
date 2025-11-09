@@ -10,7 +10,7 @@ A modern, type-safe PHP 8.4 client for the Basecamp 2 API with OAuth 2.0 and HTT
 - ✅ PHP 8.4+ with strict typing
 - ✅ Multiple authentication methods (OAuth 2.0 & HTTP Basic)
 - ✅ All 12 Basecamp 2 resources implemented
-- ✅ 100% test coverage (98 tests, 296 assertions)
+- ✅ 100% test coverage (119 tests, 371 assertions)
 - ✅ Symfony HttpClient integration
 - ✅ PSR-3 logging support
 - ✅ PHPStan level 8 compliant
@@ -121,7 +121,7 @@ $project = $client->projects()->create([
 $client->projects()->delete(123456);
 ```
 
-### Todos
+### Todos & Todolists
 
 ```php
 // Get all todolists in a project
@@ -129,6 +129,21 @@ $todolists = $client->todolists()->all($projectId);
 
 // Get todos in a todolist
 $todos = $client->todos()->all($projectId, $todolistId);
+
+// Get all todos across all todolists in a project
+$allTodos = $client->todos()->allInProject($projectId);
+
+// Filter todos by due date
+$upcomingTodos = $client->todos()->allInProject($projectId, '2025-01-01');
+
+// Get completed/remaining/trashed todos
+$completed = $client->todos()->getCompleted($projectId, $todolistId);
+$remaining = $client->todos()->getRemaining($projectId, $todolistId);
+$trashed = $client->todos()->getTrashed($projectId, $todolistId);
+
+// Project-level queries
+$allCompleted = $client->todos()->getAllCompletedInProject($projectId);
+$allRemaining = $client->todos()->getAllRemainingInProject($projectId);
 
 // Create a new todo
 $todo = $client->todos()->create($projectId, $todolistId, [
@@ -138,6 +153,42 @@ $todo = $client->todos()->create($projectId, $todolistId, [
 
 // Mark todo as complete
 $client->todos()->complete($projectId, $todoId);
+
+// Global todolist queries
+$activeLists = $client->todolists()->allGlobal();
+$completedLists = $client->todolists()->getCompletedGlobal();
+$trashedLists = $client->todolists()->getTrashedGlobal();
+
+// Get todolist with many items (1000+) - excludes todos for performance
+$largeTodolist = $client->todolists()->get($projectId, $todolistId, true);
+```
+
+### People & User Management
+
+```php
+// Get current user
+$me = $client->people()->me();
+
+// Get all people
+$people = $client->people()->all();
+
+// Get specific person
+$person = $client->people()->get($personId);
+
+// Get person's assigned todos across all projects
+$assignedTodos = $client->people()->getAssignedTodos($personId);
+
+// Filter assigned todos by due date
+$upcomingTasks = $client->people()->getAssignedTodos($personId, '2025-01-01');
+
+// Get person's activity events
+$events = $client->people()->getEvents($personId);
+
+// Get all projects accessible to a person
+$projects = $client->people()->getProjects($personId);
+
+// Get trashed (deleted) users (admin only)
+$trashedUsers = $client->people()->getTrashed();
 ```
 
 ### Messages & Comments
